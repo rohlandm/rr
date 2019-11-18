@@ -285,6 +285,34 @@ void Session::kill_all_tasks() {
   }
 }
 
+void Session::detach_all_tasks() {
+  for (auto& v : task_map) {
+    Task* t = v.second;
+
+    if (!t->is_stopped) {
+      continue;
+    }
+
+    LOG(info) << "detaching from " << t->tid << " ...";
+    long result;
+    do {
+      result = t->fallible_ptrace(PTRACE_DETACH, nullptr, nullptr);
+      if (errno == ESRCH && is_zombie_process(t->tid)) {
+        break;
+      }
+    } while (result < 0);
+  }
+
+  // while (!task_map.empty()) {
+    // Task* t = task_map.rbegin()->second;
+    // if (!t->unstable) {
+      // t->thread_group()->destabilize();
+    // }
+    // t->destroy();
+  // }
+  
+}
+
 void Session::on_destroy(AddressSpace* vm) {
   DEBUG_ASSERT(vm->task_set().size() == 0);
   DEBUG_ASSERT(vm_map.count(vm->uid()) == 1);

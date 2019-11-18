@@ -230,6 +230,12 @@ public:
   void kill_all_tasks();
 
   /**
+   * |tasks().size()| will be zero and all the OS tasks will be
+   * detached from rr when this returns, or this won't return.
+   */
+  void detach_all_tasks();
+
+  /**
    * Call these functions from the objects' destructors in order
    * to notify this session that the objects are dying.
    */

@@ -120,6 +120,12 @@ public:
   void terminate_recording();
 
   /**
+   * Flush buffers and write an end-of-recoding record to the trace. Don't call
+   * record_step() after this.
+   */
+  void terminate_partial_recording();
+
+  /**
    * Close trace output without flushing syscall buffers or writing
    * task exit/termination records to the trace.
    */

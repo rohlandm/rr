@@ -460,6 +460,8 @@ static bool parse_record_arg(vector<string>& args, RecordFlags& flags) {
 
 static volatile bool term_request;
 
+static volatile bool partial_term_request;
+
 /**
  * A terminating signal was received.  Set the |term_request| bit to
  * terminate the trace at the next convenient point.
@@ -484,11 +486,12 @@ static void handle_SIGTERM(__attribute__((unused)) int sig) {
 }
 
 /**
- * A User defined signal was received. This does nothing special at the moment.
- * In the future this should wrap up the recording for a partial trace
+ * A User defined signal was received. This sets a bool to allow
+ * the handling of partial recording requests
  */
 static void handle_SIGUSR1(__attribute__((unused)) int sig) {
   std::cout << "Got User Signal" << std::endl;
+  partial_term_request = true;
 }
 
 static void install_signal_handlers(void) {
@@ -618,26 +621,31 @@ static WaitStatus record(const vector<string>& args, const RecordFlags& flags) {
     if (!done_initial_exec && session->done_initial_exec()) {
       session->trace_writer().make_latest_trace();
     }
-  } while (step_result.status == RecordSession::STEP_CONTINUE && !term_request);
+  } while (step_result.status == RecordSession::STEP_CONTINUE && !term_request && !partial_term_request);
 
-  session->terminate_recording();
-  static_session = nullptr;
+  if (partial_term_request) {
+    session->terminate_partial_recording();
+    return WaitStatus::for_fatal_sig(SIGUSR1);
+  } else {
+    session->terminate_recording();
+    static_session = nullptr;
 
-  switch (step_result.status) {
-    case RecordSession::STEP_CONTINUE:
-      // SIGTERM interrupted us.
-      return WaitStatus::for_fatal_sig(SIGTERM);
+    switch (step_result.status) {
+      case RecordSession::STEP_CONTINUE:
+        // SIGTERM interrupted us.
+        return WaitStatus::for_fatal_sig(SIGTERM);
 
-    case RecordSession::STEP_EXITED:
-      return step_result.exit_status;
+      case RecordSession::STEP_EXITED:
+        return step_result.exit_status;
 
-    case RecordSession::STEP_SPAWN_FAILED:
-      cerr << "\n" << step_result.failure_message << "\n";
-      return WaitStatus::for_exit_code(EX_UNAVAILABLE);
+      case RecordSession::STEP_SPAWN_FAILED:
+        cerr << "\n" << step_result.failure_message << "\n";
+        return WaitStatus::for_exit_code(EX_UNAVAILABLE);
 
-    default:
-      DEBUG_ASSERT(0 && "Unknown exit status");
-      return WaitStatus();
+      default:
+        DEBUG_ASSERT(0 && "Unknown exit status");
+        return WaitStatus();
+    }
   }
 }
 

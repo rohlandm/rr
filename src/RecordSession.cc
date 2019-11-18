@@ -2086,6 +2086,21 @@ void RecordSession::terminate_recording() {
   close_trace_writer(TraceWriter::CLOSE_OK);
 }
 
+void RecordSession::terminate_partial_recording() {
+  RecordTask* t = scheduler().current();
+  if (t) {
+    t->maybe_flush_syscallbuf();
+  }
+
+  LOG(info) << "Processing request to terminate partial recording...";
+  detach_all_tasks();
+  t = nullptr;
+  // use CLOSE_OK for the moment to test what happens upon regular replay
+  // TODO: Change this to a special PARTIAL status in the future
+  close_trace_writer(TraceWriter::CLOSE_OK);
+  
+}
+
 void RecordSession::close_trace_writer(TraceWriter::CloseStatus status) {
   trace_out.close(status, trace_id.get());
 }
