@@ -483,11 +483,22 @@ static void handle_SIGTERM(__attribute__((unused)) int sig) {
   term_request = true;
 }
 
+/**
+ * A User defined signal was received. This does nothing special at the moment.
+ * In the future this should wrap up the recording for a partial trace
+ */
+static void handle_SIGUSR1(__attribute__((unused)) int sig) {
+  std::cout << "Got User Signal" << std::endl;
+}
+
 static void install_signal_handlers(void) {
   struct sigaction sa;
   memset(&sa, 0, sizeof(sa));
   sa.sa_handler = handle_SIGTERM;
   sigaction(SIGTERM, &sa, nullptr);
+
+  sa.sa_handler = handle_SIGUSR1;
+  sigaction(SIGUSR1, &sa, nullptr);
 
   sa.sa_handler = SIG_IGN;
   sigaction(SIGHUP, &sa, nullptr);
