@@ -1381,6 +1381,12 @@ Completion ReplaySession::exit_task(ReplayTask* t) {
   return COMPLETE;
 }
 
+Completion ReplaySession::exit_partial_task(ReplayTask* t) {
+  t->apply_all_data_records_from_trace();
+  // DO NOT end the task
+  return COMPLETE;
+}
+
 ReplayTask* ReplaySession::revive_task_for_exec() {
   const Event& ev = trace_frame.event();
   if (!ev.is_syscall_event() ||
