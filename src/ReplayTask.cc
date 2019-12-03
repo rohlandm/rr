@@ -128,6 +128,27 @@ ssize_t ReplayTask::set_data_from_trace() {
     t->vm()->maybe_update_breakpoints(t, buf.addr.cast<uint8_t>(),
                                       buf.data.size());
   }
+
+  /* TODO: allow the execution of some "writing" system calls in order
+      to enable the actual writing of files into */
+  if (current_trace_frame().event().is_syscall_event() ) {
+    auto syscall = current_trace_frame().event().Syscall();
+    // handle write
+    if (syscall.number == 1 ) {
+      /* code */
+    }
+    // handle open and opens through reads
+    if (syscall.number == 0 && syscall.number == 2) {
+      /* code */
+    }
+    // handle close
+    if (syscall.number == 3) {
+      /* code */
+    }
+    
+  }
+  
+
   return buf.data.size();
 }
 
