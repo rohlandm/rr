@@ -321,21 +321,21 @@ void ReplaySession::advance_to_next_trace_frame() {
   trace_frame = trace_in.read_frame();
 
   // skip last two events
-  if (trace_frame.event().is_syscall_event()) {
+  // if (trace_frame.event().is_syscall_event()) {
 
     // check for exit_group
-    if (trace_frame.event().Syscall().number == 231) {
-      std::cout << "got to an exit_group" << std::endl;
+    // if (trace_frame.event().Syscall().number == 231) {
+      // std::cout << "got to an exit_group" << std::endl;
       // peek if next is exit event
-      auto next_frame = trace_in.peek_frame();
+      // auto next_frame = trace_in.peek_frame();
 
-      if (next_frame.event().type() == EV_EXIT) {
+      if (trace_frame.event().type() == EV_EXIT) {
         std::cout << "got subsequent exit event" << std::endl;
         trace_frame = TraceFrame(trace_frame.time(), 0, Event::trace_termination(),
                                 trace_frame.ticks(), trace_frame.monotonic_time());
         return;
-      }
-    }
+      // }
+    // }
   }
 
 }
