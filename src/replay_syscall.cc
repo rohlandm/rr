@@ -38,6 +38,7 @@
 #include "ReplayTask.h"
 #include "SeccompFilterRewriter.h"
 #include "StdioMonitor.h"
+#include "BaseFileMonitor.h"
 #include "ThreadGroup.h"
 #include "TraceStream.h"
 #include "VirtualPerfCounterMonitor.h"
@@ -1192,6 +1193,7 @@ static void handle_opened_files(ReplayTask* t) {
     } else if (is_proc_fd_dir(o.path.c_str())) {
       file_monitor = new ProcFdDirMonitor(t, o.path);
     } else {
+      file_monitor = new BaseFileMonitor(3); //FIXME: need a method to get fd no
       ASSERT(t, false) << "Why did we write filename " << o.path;
     }
     t->fd_table()->add_monitor(t, o.fd, file_monitor);

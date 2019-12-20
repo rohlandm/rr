@@ -71,6 +71,7 @@
 #include "RecordTask.h"
 #include "Scheduler.h"
 #include "StdioMonitor.h"
+#include "BaseFileMonitor.h"
 #include "TraceStream.h"
 #include "VirtualPerfCounterMonitor.h"
 #include "ftrace.h"
@@ -5020,6 +5021,10 @@ static string handle_opened_file(RecordTask* t, int fd) {
   } else if (is_proc_fd_dir(pathname.c_str())) {
     LOG(info) << "Installing ProcFdDirMonitor for " << fd;
     file_monitor = new ProcFdDirMonitor(t, pathname);
+  } else {
+    // file monitor for other files
+    LOG(info) << "Installing BaseFileMonitor for " << fd;
+    file_monitor = new BaseFileMonitor(fd);
   }
 
   if (file_monitor) {

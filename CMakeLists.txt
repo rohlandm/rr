@@ -459,6 +459,7 @@ set(RR_SOURCES
   src/VirtualPerfCounterMonitor.cc
   src/util.cc
   src/WaitStatus.cc
+  src/BaseFileMonitor.cc
   ${CMAKE_CURRENT_BINARY_DIR}/rr_trace.capnp.c++
   third-party/blake2/blake2b.c
 )
