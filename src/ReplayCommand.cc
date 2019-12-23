@@ -375,11 +375,9 @@ static void serve_replay_no_debugger(const string& trace_dir,
     }
 
     if (result.status == REPLAY_EXITED) {
-      while (true)
-      {
-        /* just idling */
-      }
-      ;
+      // wait for child to terminate
+      int status;
+      waitpid(-1, &status, 0);
     }
     DEBUG_ASSERT(result.status == REPLAY_CONTINUE);
     DEBUG_ASSERT(result.break_status.watchpoints_hit.empty());
