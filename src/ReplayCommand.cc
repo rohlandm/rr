@@ -333,6 +333,8 @@ static void serve_replay_no_debugger(const string& trace_dir,
   Session::Statistics last_stats;
   gettimeofday(&last_dump_time, NULL);
 
+  Session::TaskMap tasks;
+
   while (true) {
     RunCommand cmd = RUN_CONTINUE;
     if (flags.singlestep_to_event > 0 &&
@@ -375,9 +377,22 @@ static void serve_replay_no_debugger(const string& trace_dir,
     }
 
     if (result.status == REPLAY_EXITED) {
+      
+      tasks = replay_session->tasks();
+      auto pid = tasks.begin()->second->tid;
+      // detach child from ptrace
+      // 1. stopping the trace
+      LOG(info) << "stopping Process " << pid;
+      kill(pid, SIGSTOP);
+      // 2. actually detaching
+      LOG(info) << "detaching tracer from Process " << pid;
+      ptrace(PTRACE_DETACH, pid, 0, 0);
+      // 3. Let child continue
+      // kill(pid, SIGCONT);
       // wait for child to terminate
       int status;
-      waitpid(-1, &status, 0);
+      waitpid(pid, &status, 0);
+      break;
     }
     DEBUG_ASSERT(result.status == REPLAY_CONTINUE);
     DEBUG_ASSERT(result.break_status.watchpoints_hit.empty());
