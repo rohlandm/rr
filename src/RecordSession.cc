@@ -7,6 +7,7 @@
 #include <linux/futex.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
 
 #include <algorithm>
 #include <sstream>
@@ -2093,12 +2094,16 @@ void RecordSession::terminate_partial_recording() {
   }
 
   LOG(info) << "Processing request to terminate partial recording...";
-  detach_all_tasks();
-  t = nullptr;
-  // use CLOSE_OK for the moment to test what happens upon regular replay
-  // TODO: Change this to a special PARTIAL status in the future
+  int status;
   close_trace_writer(TraceWriter::CLOSE_OK);
-  
+  // stop child so it can be detached
+  kill(t->tid, SIGSTOP);
+  // detach child
+  ptrace(PTRACE_DETACH, t->tid, 0, 0);
+  // wait for child
+  waitpid(t->tid, &status, 0);
+  // detach_all_tasks();
+  // t = nullptr;
 }
 
 void RecordSession::close_trace_writer(TraceWriter::CloseStatus status) {
